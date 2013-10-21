@@ -1,0 +1,935 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Sudoko Bank</title>
+<meta name="viewport" content="width=device-width,user-scalable=yes">  
+
+<link rel="stylesheet" href="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.css" />
+<script src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+<script src="http://code.jquery.com/mobile/1.3.2/jquery.mobile-1.3.2.min.js"></script>
+<script src="js/sudoku.js" > </script>
+<script src="js/jstorage.min.js"></script>
+
+
+<style>
+.sudoku{border:2px solid #000;width:100%;margin:0 auto;text-align:left}
+.sudoku tr{border:1px solid #ccc}
+.sudoku td{border:1px solid #ccc;padding:0;width:11%;text-align:center;opacity:0.8;background:transparent}
+.sudoku .c3,.sudoku .c6{border-left:2px solid #000}
+.sudoku .r3 td,.sudoku .r6 td{border-top:2px solid #000}
+.sudoku input{width:100%;text-align:center;font-size:2em;border:0 none;background:inherit;opacity:0.8}
+.sodoku input:focus{color:#000}
+.sudoku input.disabled{color:#555;font-weight:bold}
+.sudoku.col0 .c0 input,.sudoku.col1 .c1 input,.sudoku.col2 .c2 input,.sudoku.col3 .c3 input,.sudoku.col4 .c4 input,.sudoku.col5 .c5 input,.sudoku.col6 .c6 input,.sudoku.col7 .c7 input,.sudoku.col8 .c8 input{background:#9f9}.sudoku.row0 .r0,.sudoku.row1 .r1,.sudoku.row2 .r2,.sudoku.row3 .r3,.sudoku.row4 .r4,.sudoku.row5 .r5,.sudoku.row6 .r6,.sudoku.row7 .r7,.sudoku.row8 .r8{background:#f99}.sudoku.box00 .s0 .c0,.sudoku.box00 .s0 .c1,.sudoku.box00 .s0 .c2,.sudoku.box01 .s0 .c3,.sudoku.box01 .s0 .c4,.sudoku.box01 .s0 .c5,.sudoku.box02 .s0 .c6,.sudoku.box02 .s0 .c7,.sudoku.box02 .s0 .c8,.sudoku.box10 .s1 .c0,.sudoku.box10 .s1 .c1,.sudoku.box10 .s1 .c2,.sudoku.box11 .s1 .c3,.sudoku.box11 .s1 .c4,.sudoku.box11 .s1 .c5,.sudoku.box12 .s1 .c6,.sudoku.box12 .s1 .c7,.sudoku.box12 .s1 .c8,.sudoku.box20 .s2 .c0,.sudoku.box20 .s2 .c1,.sudoku.box20 .s2 .c2,.sudoku.box21 .s2 .c3,.sudoku.box21 .s2 .c4,.sudoku.box21 .s2 .c5,.sudoku.box22 .s2 .c6,.sudoku.box22 .s2 .c7,.sudoku.box22 .s2 .c8{background:#99c}.sudoku input.colconflict,.sudoku input.rowconflict,.sudoku input.boxconflict{color:red}
+.keyboard{background-color:'white';border:2px solid #000;width:100%;margin:0 auto;text-align:center; margin-top:5px;}
+.keyboard tr{border:1px solid #ccc}
+.keyboard td{border:1px solid #ccc;padding:0;text-align:center;opacity:0.8;background-color:"white";}
+.keyboard div {background-color:"white";}
+.icon {display: block;
+       vertical-align: middle;
+       margin-left: auto;
+       margin-right: auto;
+       max-height:32px; 
+       max-width:32px;}
+.ui.header.h3{font-size:50%;}
+
+</style>
+</head>
+
+
+
+<body>
+
+<!-- **** Sudoku PAGE **** -->
+
+
+<div data-role="page" id="sudoko_page">
+
+<div data-role="content" >
+<div id="grid">
+
+</div>
+
+<table style="width:100%;" class="keyboard" >
+<tr>
+<td ><div id="k0">&nbsp;</div></td><td ><div id="k1">&nbsp;</div></td><td ><div id="k2">&nbsp;</div></td><td ><div id="k3">&nbsp;</div></td><td ><div id="k4">&nbsp;</div></td><td ><div id="k5">&nbsp;</div></td><td ><div id="k6">&nbsp;</div></td><td ><div id="k7">&nbsp;</div></td><td ><div id="k8">&nbsp;</div></td><td ><div id="k9">&nbsp;</div></td>
+</tr>
+</table>
+ 
+ </div>  
+
+ 
+  
+  <div data-role="footer"  data-id="toolbar">
+   <section class="ui-grid-d">
+      <div class="ui-block-a"><img class="icon" src="images/options.png" id="options"></div>
+      <div class="ui-block-b"><img class="icon" src="images/clear.png" id="clear"></div>
+      <div class="ui-block-c"><img style="background: #FFFFFF;" class="icon" src="images/solve.png" id="solve"></div>
+      <div class="ui-block-d"><img class="icon" src="images/save.png" id="save" style="display:none;"></div>
+      <div class="ui-block-d"><img class="icon" src="images/retrieve.png" id="retrieve" style="display:none;"></div>
+    </section>
+  
+  </div>
+  
+  <div data-role="popup" id="save_popup" data-position-to="window">
+    <p>Please enter a name for this game.</p>
+  
+    <div data-role="fieldcontain">
+    <label for="name">Name:</label>
+    <input type="text" required name="name" id="game_name" value="" data-mini="true" maxlength="12"/>
+    <a href="#" data-role="button" data-mini="true" id="save_game">Save</a>
+    <a href="#" data-role="button" data-mini="true" id="cancel_save">Cancel</a>
+    </div>
+  </div>  
+<div data-role="popup" id="retrieve_popup" data-position-to="window">
+    <p>Please select a saved game.</p>
+  
+    <div data-role="fieldcontain">
+    <select id="select_game" required>
+  
+    </select>
+    
+    <a href="#" data-role="button" data-mini="true" id="load_game">Load</a>
+    <a href="#" data-role="button" data-mini="true" id="cancel_retrieve">Cancel</a>
+    </div>	
+ </div>
+  
+  </div>
+
+  
+<script type="text/javascript" >
+   
+//Initialise classesArray to keep track of how the elements are solved.
+var classesArray = [];
+for (var elem=0; elem<81; elem++) {
+  classesArray[elem] = "";
+}
+
+// Create arrays for each row, column and 3x3 square so we can easily find which elements are in each of these.
+var rowArray = initialiseRowArray();
+var colArray = initialiseColArray();
+var squareArray = initialiseSquareArray();
+
+if(typeof(Storage)!=="undefined")
+{
+   $("#save").show();
+   $("#retrieve").show();
+}
+
+
+   createGridInDOM();
+   
+   var game = CU.Sudoku.generate();
+   CU.Sudoku.cull(game,60);
+   LoadGame(game.toArray());
+   
+   var selected;
+   
+   $("#options").click(function(event){
+	   
+	   
+   });
+   
+   $("#retrieve").click(function(event){
+	   var games = $.jStorage.index();
+	   var list = $("#select_game");
+	   list.html("");
+	   $.each(games,function(index,game){
+		  var selected = index == 0 ? "selected" : ""; 
+		  list.append('<option value="'+index+'" '+selected+' >'+game+'</option>');
+		  
+	   });
+	   list.selectmenu('refresh');
+	   $("#retrieve_popup").popup("open");
+   });
+   
+ 
+   $("#cancel_retrieve").click(function(){
+	   $("#retrieve_popup").popup("close");
+   });
+   
+   
+   $("#load_game").click(function(){
+       var index = $("#select_game").val();
+	   var games = $.jStorage.index();
+	   var game = games[index];
+	   var html = $.jStorage.get(game);
+	   $("#grid").html(html);
+	   alert("Load game '"+game+"'");
+	   $("#retrieve_popup").popup("close");
+   });
+   
+   $("#save").click(function(event){
+	   $("#game_name").val("");
+	   $("#save_popup").popup("open");
+   });
+   
+   $("#cancel_save").click(function(){
+	   $("#save_popup").popup("close");
+   });
+   
+   $("#save_game").click(function(event){
+	   var name = $("#game_name").val();
+	   if( !name )
+	   { 
+		   alert("Must enter a game name");
+		   event.preventDefault();
+		   return;
+	   }
+	   var names = $.jStorage.index()
+	   if( $.inArray(name,names) != -1 )
+	   {
+		  var reply = confirm("Game named '"+name+"' is already saved. Do you wish to over write?");
+		  if( !reply ) {
+			  event.preventDefault();
+			  return;
+		  } 
+	   }
+	   $.jStorage.set(name,$("#grid").html());
+	   alert("Game samed with name '"+name+"'.");
+	   $("#save_popup").popup("close");
+	   
+   });
+   
+   $("#clear").click(function(event){
+	   var reply = confirm("Do you really want to clear and start again?");
+	   if( reply ) {
+	   for (var e=0; e<81; e++) {
+	       var elem = $("#elem" + e);	 
+	       if( elem.hasClass("empty") )
+	    	   elem.html("&nbsp;");
+	       
+	       } 
+	   }
+	   clearKeyboard();
+	   event.preventDefault();
+   });
+   
+   
+   $(".sudoku td div").click(function (event) {
+	   var cell = $("#"+event.target.id);
+	   if( cell.hasClass("empty") ) {
+		  if( selected ) {
+			  if( selected.attr("id") == cell.attr("id") ){
+				  selected.css('background-color', 'white');	
+				  clearKeyboard();
+				  selected = null;
+			  } else {
+				  selected.css('background-color', 'white');
+				  cell.css('background-color', 'red');
+				  selected = cell;
+				  populateKeyboard(cell);
+				 
+			  }
+		  } else {
+	         cell.css('background-color', 'red');
+	         selected = cell;
+	       
+	         populateKeyboard(cell);
+		  }
+	   }
+	   event.preventDefault();
+   });
+   
+   function populateKeyboard(cell) {
+	   var classList =cell.attr('class').split(/\s+/);
+	   var keyboard = ["1","2","3","4","5","6","7","8","9"];
+	   $.each( classList, function(index, name){
+	       if( name != "empty" ) {
+	         $(".sudoku ."+name).each(function(){
+	    	   if( $(this).text() != "&nbsp;" ) {
+	    	     remove(keyboard,$(this).text());
+	    	   }
+	         });
+	       }
+	       
+	   });
+	   for( var i = 1; i <= 9; i++ )
+	   {
+		  var key = $(".keyboard #k"+i);
+		  key.html("&nbsp;");
+          if( $.inArray(i+"",keyboard) != -1 ) {
+        	  key.text(i);
+          }	  
+	   }
+	   
+   };
+   
+   function clearKeyboard() {
+	   for( var i = 1; i <= 9; i++ )
+	   {
+		  var key = $(".keyboard #k"+i);
+		  key.html("&nbsp;");
+           
+	   }
+   };
+   function remove(arr, item) {
+	      for(var i = arr.length; i--;) {
+	          if(arr[i] === item) {
+	              arr.splice(i, 1);
+	          }
+	      }
+	  };
+   
+  
+   
+   $(".keyboard td div").click(function(event){
+	   if( selected ) {
+	     var key = $("#"+event.target.id);
+	     selected.html(key.html());
+	     selected.css('background-color', 'white');
+	    
+	   } 
+   });
+   
+   $(".keyboard td div").mouseleave(function(event){
+	   var cell = $("#"+event.target.id);
+	   cell.css('background-color', 'white'); 
+	   
+	   event.preventDefault();
+	   
+   });
+   
+   $(".keyboard td div").mouseenter(function(event) {
+	   var cell = $("#"+event.target.id);
+	   if( cell.html() != "&nbsp;" ) { 
+		  cell.css('background-color', 'yellow');
+	   }
+	   else  {
+		  cell.css('background-color', 'white');
+		}	   
+	   event.preventDefault();
+   });
+   
+   
+   $(".sudoku td div").mouseenter(function(event){
+	   var cell = $("#"+event.target.id);
+	   if( cell.html() == "&nbsp;" ) {
+		   if( selected == null ) {
+			   cell.css('background-color', 'yellow');
+		   }
+		   else if( cell.attr("id") != selected.attr("id") ) {
+				   cell.css('background-color', 'yellow');
+		   }	   
+		   
+	   }
+	   event.preventDefault();
+	  
+   });
+   
+   $(".sudoku td div").mouseleave(function(event){
+	   var cell = $("#"+event.target.id);
+	   
+	   if( cell.html() == "&nbsp;" ) {
+		   if( selected == null )
+		  { 
+			 cell.css('background-color', 'white'); 
+		  } else if ( cell.attr("id") != selected.attr("id") ) {
+			 cell.css('background-color', 'white'); 
+		  }
+	   }
+	   event.preventDefault();
+	   
+   });
+   
+   
+   
+   $("#new_button").click(function(event){
+	   var reply = confirm("Do you really want a new game?");
+	   if( reply ) 
+	   {
+		   var game = CU.Sudoku.generate();
+		   CU.Sudoku.cull(game,60);
+		   LoadGame(game.toArray());
+		   clearKeyboard();
+	   }
+	   
+   });
+   
+   
+   
+
+   
+// When solve button is clicked, solve sudoku
+   $("#solve").click(function() {
+   
+	 var reply = confirm("Do you really want me to solve this game?");
+	 if( !reply ) return;
+     // Start timer
+     var startTime = new Date;
+
+     // Initialise sudoku array with possibilities.
+     var gridArray = [];
+     for (var elem=0; elem<81; elem++) {
+       gridArray[elem] = [1,2,3,4,5,6,7,8,9];
+     }
+     
+     // Take input values from grid and put into sudoku array
+     for (var e=0; e<81; e++) {
+       var elem = $("#elem" + e);	 
+       var elemValue = elem.html();
+       if (elemValue != "&nbsp;") {
+         gridArray[e] = parseFloat(elemValue);
+       } 
+     };
+     
+     // Solve sudoku
+     gridArray = solve(gridArray);
+
+     // Stop timer
+     var endTime = new Date;
+     var timeTaken = endTime - startTime;
+     if (timeTaken == 0) {
+       timeTaken = "< 1";
+     }
+
+   // Display sudoku and if sukoku was solved/impossible/failed
+     if (isSolved(gridArray)) {
+          populateSolution(gridArray);
+          alert("Solved in " + timeTaken + " ms!");
+     } else {
+       if (isValid(gridArray)) {
+          alert("Failed!");
+       } else {
+          alert("Not possible!");
+       }
+     }
+     clearKeyboard();
+   }); // End solve button click
+
+   function populateSolution(gridArray) {
+	   for( var i =0; i < 81; i++ )
+	   {
+		   var elem = $("#elem"+i);
+		   if( elem.hasClass("empty") )
+		   { elem.html(gridArray[i]);
+		   }
+	   }
+   };
+   
+   
+   function solve(gridArray) {
+   
+     // Check if solved
+     if (isSolved(gridArray)) {
+       return gridArray;
+     }
+     
+     var gridChanged = true;
+     var startingElementsSolved;
+     var endingElementsSolved;
+   
+     // Apply sudoku rules 1 and 2 multiple times (until grid does not change)
+     while (gridChanged && isValid(gridArray)) {
+   
+       gridChanged = false;
+       startingElementsSolved = getNoOfElementsSolved(gridArray);
+   
+       gridArray = applyRules1And2(gridArray);    
+       
+       // If some elements have been solved by rules 1 and 2, we should repeat these rules
+       endingElementsSolved = getNoOfElementsSolved(gridArray);
+       if (startingElementsSolved != endingElementsSolved) {
+         gridChanged = true;
+       }
+       
+     };
+     
+     // When rules 1 and 2 can't solve any more elements, we move on to rule 3
+     gridArray = applyRule3(gridArray);
+   
+     return gridArray;
+   
+   } // end solve
+   
+   
+   function applyRules1And2(gridArray) {
+   
+     // Loop through each element. If it is an array (i.e. not yet solved), remove numbers from the possibility array which are not possible.
+     // i.e. Remove numbers which are in the same row, column or 3x square as this element
+     for (var elem=0; elem<81; elem++) {
+       gridArray = applyRules1And2ToOneElement(gridArray, elem);
+     }
+     return gridArray;
+   
+   } // end applyRules1And2
+   
+   
+   
+   function applyRules1And2ToOneElement(gridArray, elem) {
+   
+     // Check element is an array (i.e. the element has not yet been solved)
+     if (typeof gridArray[elem] == "object") {
+     
+       // Loop through other elements in the same row as this element. Rows are numbered 0 to 8
+       var currentRow = getRow(elem);
+       gridArray = solveElementUsingRules1And2('row', gridArray, currentRow, elem);
+       
+       // Loop through other elements in the same column as this element. Columns are numbered 0 to 8
+       var currentCol = getCol(elem);
+       gridArray = solveElementUsingRules1And2('col', gridArray, currentCol, elem);
+   
+       // Loop through other elements in the same column as this element. 3x3 squares are numbered 0 to 8
+       var currentSquare = getSquare(elem);
+       gridArray = solveElementUsingRules1And2('square', gridArray, currentSquare, elem);
+   
+     }
+     
+     return gridArray; 
+   
+   } // end applyRules1And2ToOneElement
+   
+   
+   
+   function solveElementUsingRules1And2(rowColOrSquare, gridArray, currentRowColOrSquare, elem) {
+   
+     // Find out if we are comparing the current element (elem) with the other elements in a row, column or square
+     switch (rowColOrSquare) {
+       case 'row':
+         var elementsToCompare = rowArray[currentRowColOrSquare];
+         break;
+       case 'col':
+         var elementsToCompare = colArray[currentRowColOrSquare];
+         break;
+       case 'square':
+         var elementsToCompare = squareArray[currentRowColOrSquare];
+         break;
+     }
+   
+     // Rule 1: Compare the current element (elem) with the other elements in a row, column or square
+     for (var box=0; box<9; box++) {
+   
+       var otherElem = elementsToCompare[box];
+       // Don't use the current element in the comparison
+       if (otherElem != elem) {
+   
+         // If the other element is a number, remove it as a possibility from the current element's array
+         if (typeof gridArray[otherElem] == "number") {
+           if (isAPossibility(gridArray[elem], gridArray[otherElem])) {
+             gridArray[elem] = removePossibility(gridArray[elem], gridArray[otherElem]);
+             if (typeof gridArray[elem] == "number") {
+               classesArray[elem] = "solved1";
+//               $("#elem" + elem).attr("value", gridArray[elem]).addClass("solved1");
+             }
+           }
+         }
+         
+       }
+     }
+   
+     // Rule 2: Check all the possibilities for this element to see if it is the only one in a row, column or square that can have this possibility
+     for (var poss=0; poss<gridArray[elem].length; poss++) {
+     
+       var currentPossNumber = gridArray[elem][poss];
+       var currentPossFoundInOtherElem = false;
+       for (var box=0; box<9; box++) {
+       
+         var otherElem = elementsToCompare[box];
+         // Don't use the current element in the comparison
+         if (otherElem != elem) {
+         
+           // If the other element is an array, check to see if the current possible correct number for elem is in the other element's array.
+           if (typeof gridArray[otherElem] == "object") {          
+             if (isAPossibility(gridArray[otherElem], currentPossNumber)) {
+               currentPossFoundInOtherElem = true;
+             }          
+           }
+     
+         }
+       }
+       
+       // If the possible number cannot possibly go anywhere else in its row, column or square, it must go in this element.
+       if (!currentPossFoundInOtherElem) {
+         gridArray[elem] = currentPossNumber;
+         classesArray[elem] = "solved2";
+//         $("#elem" + elem).attr("value", currentPossNumber).addClass("solved2");
+       }
+     }  
+   
+     return gridArray;
+     
+   } // end solveElementUsingRules1And2
+   
+   
+   
+   function applyRule3(gridArray) {
+   
+     // Find first non solved element with the minimum possibilities
+     if (!isSolved(gridArray) && isValid(gridArray)) {
+   
+       // Find a good element to guess the value of - one with the least possibilities
+       var nonSolvedElem = findElementWithLeastPossibilities(gridArray);
+       var noOfPossibilities = gridArray[nonSolvedElem].length;
+   
+       // Take a copy of gridArray as it currently stands
+       var origGridArray = $.extend(true, [], gridArray);
+   
+       // Try to solve the sudoku using one of the possibilities of the nonSolvedElem element.
+       // If that doesn't work, we use the next possibility of this element.
+       for (var poss=0; poss<noOfPossibilities; poss++) {
+   
+         // If the sudoku hasn't been solved
+         if (!isSolved(gridArray)) {
+   
+           // If the sudoku is invalid, the last guess was wrong.
+           // Reset gridArray and input element
+           if (!isValid(gridArray)) {
+             gridArray = $.extend(true, [], origGridArray);
+           }
+           
+           // Try the next (or first) possibility in the element
+           var currentPoss = gridArray[nonSolvedElem][poss];
+           gridArray[nonSolvedElem] = gridArray[nonSolvedElem][poss];
+   
+           // Update the displayed grid by setting the element's value using jquery
+           classesArray[nonSolvedElem] = "guessed";
+//           $("#elem" + nonSolvedElem).attr("value", gridArray[nonSolvedElem]).addClass("guessed");
+           
+           // Try to solve the sudoku again by calling the solve function recursively
+           gridArray = solve(gridArray);
+   
+         }
+       }
+     }
+     
+     return gridArray;
+   
+   } // end applyRule3
+   
+   
+   
+   function findElementWithLeastPossibilities(gridArray) {
+   
+     var nonSolvedElem = "";
+     var noOfPossibilities = 10; // one more than possible so that the first element with possibilities will be looked at
+     for (var elem=0; elem<81; elem++) {
+   
+       // Check element is an array (i.e. the element has not yet been solved)
+       if (typeof gridArray[elem] == "object") {
+         if (gridArray[elem].length < noOfPossibilities) {
+           nonSolvedElem = elem;
+           noOfPossibilities = gridArray[elem].length;
+         }
+       }
+     }
+     
+     return nonSolvedElem;
+       
+   } // end findElementWithLeastPossibilities
+   
+   
+   function getNoOfElementsSolved(gridArray) {
+   
+     // Find the number of elements in the grid that have been solved
+     var elementsSolved = 0;
+     for (var elem=0; elem<81; elem++) {
+       if (typeof gridArray[elem] == "number") {
+         elementsSolved++;
+       }
+     }
+     return elementsSolved;
+   
+   } // end getNoOfElementsSolved
+   
+   
+   function isSolved(gridArray) {
+   
+     // First check that all elements in the grid are numbers, not possibility arrays
+     for (var elem=0; elem<81; elem++) {
+       if (typeof gridArray[elem] != "number") return false;   
+     }
+   
+     // Loop through each row to check total is 45
+     var rowTotal;
+     for (var row=0; row<9; row++) {
+       rowTotal = 0;
+       for (var elem=0; elem<9; elem++) {
+         rowTotal += gridArray[rowArray[row][elem]];
+       }
+       if (rowTotal != 45) {
+         return false;
+       }
+     }
+   
+     // Loop through each column to check total is 45
+     var colTotal;
+     for (var col=0; col<9; col++) {
+       colTotal = 0;
+       for (var elem=0; elem<9; elem++) {
+         colTotal += gridArray[colArray[col][elem]];
+       }
+       if (colTotal != 45) {
+         return false;
+       }
+     }
+     
+     // Loop through each 3x3 square to check total is 45
+     var squareTotal;
+     for (var square=0; square<9; square++) {
+       squareTotal = 0;
+       for (var elem=0; elem<9; elem++) {
+         squareTotal += gridArray[squareArray[square][elem]];
+       }
+       if (squareTotal != 45) {
+         return false;
+       }
+     }
+   
+     // If all tests pass, the grid is solved
+     return true;
+   
+   } // end isSolved
+   
+   
+   function isValid(gridArray) {
+   
+     // Loop through each row. Check each number only occurs once in the row.
+     for (var row=0; row<9; row++) {
+       var numbersInRow = [];
+       for (var elem=0; elem<9; elem++) {
+   
+         // If element is a number, check if this number is already in the row array. If it is, the grid is invalid.
+         // If not, we add the number to the row array.
+         var currentElem = gridArray[rowArray[row][elem]];
+         if (typeof currentElem == "number") {
+           if (numbersInRow.indexOf(currentElem) > -1) {
+             return false;
+           } else {
+             numbersInRow.push(currentElem);
+           }        
+         }
+       }
+     }
+   
+     // Loop through each row. Check each number only occurs once in the row.
+     for (var col=0; col<9; col++) {
+       var numbersInCol = [];
+       for (var elem=0; elem<9; elem++) {
+   
+         // If element is a number, check if this number is already in the column array. If it is, the grid is invalid.
+         // If not, we add the number to the column array.
+         var currentElem = gridArray[colArray[col][elem]];
+         if (typeof currentElem == "number") {
+           if (numbersInCol.indexOf(currentElem) > -1) {
+             return false;
+           } else {
+             numbersInCol.push(currentElem);
+           }        
+         }
+       }
+     }
+   
+     // Loop through each square. Check each number only occurs once in the square.
+     for (var square=0; square<9; square++) {
+       var numbersInSquare = [];
+       for (var elem=0; elem<9; elem++) {
+   
+         // If element is a number, check if this number is already in the column array. If it is, the grid is invalid.
+         // If not, we add the number to the column array.
+         var currentElem = gridArray[squareArray[square][elem]];
+         if (typeof currentElem == "number") {
+           if (numbersInSquare.indexOf(currentElem) > -1) {
+             return false;
+           } else {
+             numbersInSquare.push(currentElem);
+           }        
+         }
+       }
+     }
+     
+     return true;
+     
+   } // end isValid
+   
+   
+   function removePossibility(gridArrayElement, numberToRemove) {
+   
+     // Find the array index of the number to remove
+     var elementPosition = gridArrayElement.indexOf(numberToRemove);
+     // Remove it if found
+     if (elementPosition != -1) {
+       gridArrayElement.splice(elementPosition, 1);
+     }
+     if (gridArrayElement.length > 1) {
+       return gridArrayElement;
+     } else {
+       return gridArrayElement[0];
+     }
+   
+   } // removePossibility
+   
+   
+   function isAPossibility(gridArrayElement, numberToCheck) {
+   
+     if (typeof gridArrayElement == "object") {
+       var elementPosition = gridArrayElement.indexOf(numberToCheck);
+       if (elementPosition == -1) {
+         return false;
+       } else {
+         return true;
+       }
+     } else {
+       return false;
+     }
+     
+   } // end isAPossibility
+   
+   
+   function clearGrid() {
+   
+     // Clears all the input elements
+     for (var elem=0; elem<81; elem++) {
+       $("#elem" + elem).attr("value","").removeClass("solved1 solved2 guessed");
+       classesArray[elem] = "";
+     }
+   
+   } // end clearGrid
+   
+   
+   function initialiseRowArray() {
+   
+     var rowArray = [];
+     for (var row=0; row<9; row++) {
+       var tempRowArray = [];
+       for (elem=(row)*9; elem<(row+1)*9; elem++) {
+         tempRowArray.push(elem);
+       }
+       rowArray[row] = tempRowArray;
+     }
+     return rowArray;
+     
+   } // end initialiseRowArray
+   
+   
+   function initialiseColArray() {
+   
+     var colArray = [];
+     for (var col=0; col<9; col++) {
+       var tempColArray = [];
+       for (elem=col; elem<73+col; elem=elem+9) {
+         tempColArray.push(elem);
+       }
+       colArray[col] = tempColArray;
+     }
+     return colArray;
+     
+   } // end initialiseColArray
+   
+   
+   function initialiseSquareArray() {
+   
+     var squareArray = [];
+     for (var square=0; square<9; square++) {
+       squareArray[square] = [];
+     }
+     for (var elem=0; elem<81; elem++) {
+       var currentSquare = getSquare(elem);
+       squareArray[currentSquare].push(elem);
+     }
+     return squareArray;
+     
+   } // end initialiseSquareArray
+   
+   
+   function getRow(element) {
+     return Math.floor (element / 9);
+   } // end getRow
+   
+   
+   function getCol(element) {
+     return Math.floor(element % 9);
+   } // end getCol
+   
+   
+   function getSquare(element) {
+   
+     var row = getRow(element);
+     var column = getCol(element);
+     
+     if (row < 3 && column < 3) return 0;
+     if (row < 3 && column >= 3 && column < 6) return 1;
+     if (row < 3 && column >= 6) return 2;
+     if (row >= 3 && row < 6 && column < 3) return 3;
+     if (row >= 3 && row < 6 && column >= 3 && column < 6) return 4;
+     if (row >= 3 && row < 6 && column >= 6) return 5;
+     if (row >= 6 && column < 3) return 6;
+     if (row >= 6 && column >= 3 && column < 6) return 7;
+     if (row >= 6 && column >= 6) return 8;
+   
+   } // end getSquare
+		
+   
+   
+   function createGridInDOM() {
+	   
+	    // Create input elements for sudoku grid
+	    var inputsHTML = '<table class="sudoku" cellpadding="0" cellspacing="0" style="width:100%;"  >\n';
+	    inputsHTML += '<tbody class="s0" >\n';
+	    var elem = 0
+	    var s = 1;
+	    for (var row=0; row<9; row++) {
+	      if( row == 3 || row == 6 ) {
+	    	  inputsHTML += "</tbody>\n";
+	    	  inputsHTML += '<tbody class="s'+s+'" >\n';
+	    	  s++;
+	      }	
+	      inputsHTML += '<tr class="r'+row+'">\n';
+	      for (var col=0; col<9; col++) {
+	    	  var group;
+	    	  if( col >= 0 && col <= 2)
+	    	  {
+	    		  if( row >= 0 && row <= 2 )
+	    			  group = "g1"
+	    			  else if( row >= 3 && row <= 5 )
+	    				  group = "g2";
+	    			  else 
+	    				  group = "g3";
+	    	  }	  
+	    	  else if ( col >= 3 && col <= 5 ) {
+	    		  if( row >= 0 && row <= 2 )
+	    			  group = "g4"
+	    			  else if( row >= 3 && row <= 5 )
+	    				  group = "g5";
+	    			  else 
+	    				  group = "g6";
+	    	  } else if (col >= 6 ) {
+	    		  if( row >= 0 && row <= 2 )
+	    			  group = "g7"
+	    			  else if( row >= 3 && row <= 5 )
+	    				  group = "g8";
+	    			  else 
+	    				  group = "g9";
+	    	  }
+	    	  inputsHTML += '<td class="c'+col+'" ><div  class="col'+col+' row'+row+' '+group+'" id="elem'+elem+'"><div></td>\n';
+	           elem++;
+	      }
+	      inputsHTML += "</tr>\n";
+	    }
+	    inputsHTML += "</tbody>\n";
+	    inputsHTML += "</table>\n";
+	    $("#grid").html(inputsHTML);
+   };
+   
+   function LoadGame(game) {
+	   for( var i = 0; i < 81; i++ ) {
+			   var cell = $("#elem"+i);
+			   if( game[i] == 0 ) {
+				   cell.css('background-color', 'white');
+				   cell.html("&nbsp;");
+				   cell.addClass("empty");
+				  
+			   } else {
+			       cell.html(game[i]);
+			       cell.css('background-color', '#EBEAE8');
+			       cell.removeClass("empty");
+			   }	   
+	   }
+	   selected = null;
+   }
+
+</script>
+
+
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<!--[if lt IE 7 ]> <html lang="en" class="no-js ie6"> <![endif]-->
+<!--[if IE 7 ]>    <html lang="en" class="no-js ie7"> <![endif]-->
+<!--[if IE 8 ]>    <html lang="en" class="no-js ie8"> <![endif]-->
+<!--[if IE 9 ]>    <html lang="en" class="no-js ie9"> <![endif]-->
+<!--[if (gt IE 9)|!(IE)]><!--> <html lang="en" class="no-js"> <!--<![endif]-->
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+	
+	<title></title>
+	<meta name="description" content="">
+	<meta name="author" content="">
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	
+	<link rel="stylesheet" href="css/style.css?v=3">
+</head>
+<body>
+	<div id="container">
+		<header>
+
+		</header>
+
+		<div id="main" role="main">
+			<ul id="sudokuHelperLinks">
+				<li><a class="siteLink" href="http://www.keeforama.com">keeforama</a></li>
+				<li><a href="http://www.keeforama.com/archives/sudoku-solving">Why?</a></li>
+				<li><a href="http://www.keeforama.com/archives/javascript-sudoku-solver">How?</a></li>
+			</ul>
+      <div id="gridAndControls">
+        <h1>Soduku solver</h1>
+        <div id="grid"></div>
+        <div id="controls">
+          <h2>Choose a ready-made sudoku</h2>
+          <ul id="gridSelector">
+            <li><input type="radio" name="sudokuGrid" id="grid1"><label for="grid1">Easy peasy</label></li>
+            <li><input type="radio" name="sudokuGrid" id="grid2"><label for="grid2">Not a doddle</label></li>
+            <li><input type="radio" name="sudokuGrid" id="grid3"><label for="grid3">Tough enough</label></li>
+            <li><input type="radio" name="sudokuGrid" id="grid4"><label for="grid4">You're kidding</label></li>
+            <li><input type="radio" name="sudokuGrid" id="grid5"><label for="grid5">No way Jose!</label></li>
+          </ul>
+          <div class="buttonAndResultWrapper">
+            <div class="buttonWrapper">
+              <input id="solveMySudokuButton" class="solveButton button orange" type="button" value="Solve sudoku">
+            </div>
+            <div id="solveMySudokuResult" class="result"></div>
+          </div>
+          <p class="clear">You can also enter your own sudoku. You might want to <a id="clearGrid">clear the grid</a> first or paste in your own sudoku grid (e.g. 000300800640800...).</p>
+          <div id="sudokuStringWrapper">
+            <input id="sudokuString" type="text" width="81" maxlength="81">
+            <input id="addSudokuStringButton" class="button orange" type="button" value="Add sudoku string">
+          </div>
+        </div>
+      </div>
+      
+		</div>
+
+		<footer>
+
+		</footer>
+	</div>
+
+	<script type="text/javascript" src="js/jquery-1.4.js"></script>
+
+
+	<script src="js/plugins.js"></script>
+	<script src="//www.keeforama.com/wp-content/themes/keeforama-child-of-thematic/library/scripts/jquery.lettering.js"></script>
+	<script src="js/script.js"></script>
+	<script>
+		var _gaq=[['_setAccount','UA-22951294-1'],['_trackPageview']]; // Change UA-XXXXX-X to be your site's ID
+		(function(d,t){var g=d.createElement(t),s=d.getElementsByTagName(t)[0];g.async=1;
+		g.src=('https:'==location.protocol?'//ssl':'//www')+'.google-analytics.com/ga.js';
+		s.parentNode.insertBefore(g,s)}(document,'script'));
+	</script>
+</body>
+</html>
